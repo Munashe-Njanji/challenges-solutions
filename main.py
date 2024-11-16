@@ -1,3 +1,7 @@
+import time
+from multiprocessing import Pool
+
+
 def collatz_length(n, memo):
     """
     Calculate the length of the Collatz sequence for `n` using memoization.
@@ -20,6 +24,14 @@ def collatz_length(n, memo):
     return steps
 
 
+def find_collatz_length(args):
+    """
+    Helper function to find the Collatz sequence length for a given number.
+    """
+    n, memo = args
+    return collatz_length(n, memo)
+
+
 def find_longest_collatz(limit):
     """
     Find the number with the longest Collatz sequence under `limit`.
@@ -28,8 +40,10 @@ def find_longest_collatz(limit):
     max_length = 0
     number_with_max_length = 0
 
-    for i in range(1, limit):
-        length = collatz_length(i, memo)
+    with Pool() as pool:
+        results = pool.map(find_collatz_length, [(i, memo) for i in range(1, limit)])
+
+    for i, length in enumerate(results, start=1):
         if length > max_length:
             max_length = length
             number_with_max_length = i
@@ -38,6 +52,12 @@ def find_longest_collatz(limit):
 
 
 if __name__ == "__main__":
-    limit = 10**9  # Test with 1 million; adjust as needed
+    limit = 10**7  # Testing with 1 billion
+    start_time = time.time()
     number, length = find_longest_collatz(limit)
-    print(f"The number under {limit} with the longest Collatz sequence is {number}, with a length of {length}.")
+    end_time = time.time()
+
+    print(
+        f"The number under {limit} with the longest Collatz sequence is {number}, with a length of {length}."
+    )
+    print(f"Execution time: {end_time - start_time:.2f} seconds")
